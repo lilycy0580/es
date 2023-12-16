@@ -1,0 +1,9 @@
+server:
+  port: 6900
+
+spring:
+  elasticsearch:
+    rest:
+      uris: http://localhost:9200   # 协调节点
+      username: elastic
+      password: password
