@@ -1,10 +1,15 @@
 package com.es.demo.service;
 
 import com.es.demo.entity.Hotel;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
@@ -13,6 +18,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,39 +41,40 @@ public class EsService {
 //        processQueryObject(recRequest,esQueryObject);
 //    }
 
+    //单条写入索引
+    public void singleIndexDoc(Map<String, Object> dataMap, String indexName, String indexId) {
+        //构建IndexRequest对象并设置对应的索引和_id字段名称
+        IndexRequest indexRequest = new IndexRequest(indexName).id(indexId).source(dataMap);
+        try {
+            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);//执行写入
+            String index = indexResponse.getIndex();//通过IndexResponse获取索引名称
+            String id = indexResponse.getId();//通过IndexResponse获取文档Id
+            Long version = indexResponse.getVersion();//通过IndexResponse获取文档版本
+            System.out.println("index=" + index + ",id=" + id + ",version=" + version );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-//    //单条写入索引
-//    public void singleIndexDoc(Map<String, Object> dataMap, String indexName, String indexId) {
-//        IndexRequest indexRequest = new IndexRequest(indexName).id(indexId).source(dataMap);//构建IndexRequest对象并设置对应的索引和_id字段名称
-//        try {
-//            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);//执行写入
-//            String index = indexResponse.getIndex();//通过IndexResponse获取索引名称
-//            String id = indexResponse.getId();//通过IndexResponse获取文档Id
-//            Long version = indexResponse.getVersion();//通过IndexResponse获取文档版本
-//            System.out.println("index=" + index + ",id=" + id + ",version=" + version );
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    //批量写入索引
-//    public void bulkIndexDoc(String indexName, String docIdKey, List<Map<String, Object>> recordMapList) {
-//        BulkRequest bulkRequest = new BulkRequest(indexName);//构建批量操作BulkRequest对象
-//        for (Map<String, Object> dataMap : recordMapList) {//遍历数据
-//            String docId = dataMap.get(docIdKey).toString();//获取主键作为Elasticsearch索引的主键
-//            IndexRequest indexRequest = new IndexRequest().id(docId).source(dataMap);//构建IndexRequest对象
-//            bulkRequest.add(indexRequest);//添加IndexRequest
-//        }
-//        bulkRequest.timeout(TimeValue.timeValueSeconds(5));//设置超时时间
-//        try {
-//            BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);//执行批量写入
-//            if (bulkResponse.hasFailures()) {//判断执行状态
-//                System.out.println("bulk fail,message:" + bulkResponse.buildFailureMessage());
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    //批量写入索引
+    public void bulkIndexDoc(String indexName, String docIdKey, List<Map<String, Object>> recordMapList) {
+        BulkRequest bulkRequest = new BulkRequest(indexName);//构建批量操作BulkRequest对象
+        for (Map<String, Object> dataMap : recordMapList) {//遍历数据
+            String docId = dataMap.get(docIdKey).toString();//获取主键作为Elasticsearch索引的主键
+            IndexRequest indexRequest = new IndexRequest().id(docId).source(dataMap);//构建IndexRequest对象
+            bulkRequest.add(indexRequest);//添加IndexRequest
+        }
+        bulkRequest.timeout(TimeValue.timeValueSeconds(5));//设置超时时间
+        try {
+            BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);//执行批量写入
+            if (bulkResponse.hasFailures()) {//判断执行状态
+                System.out.println("bulk fail,message:" + bulkResponse.buildFailureMessage());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 //
 //    //批量写入文档增加监听器
 //    public void bulkListenerIndexDoc(String indexName, String docIdKey, List<Map<String, Object>> recordMapList) {
@@ -234,6 +241,7 @@ public class EsService {
 //        }
 //    }
 //
+
     public List<Hotel> getHotelFromTitle(String keyword) {
         SearchRequest searchRequest = new SearchRequest("hotel");//客户端请求
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
