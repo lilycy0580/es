@@ -3,6 +3,7 @@ package com.es.demo.service;
 import com.es.demo.entity.Hotel;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -15,6 +16,7 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.elasticsearch.index.reindex.UpdateByQueryRequest;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.script.Script;
@@ -206,47 +208,47 @@ public class EsService {
         }
     }
 
-//    //-----------------------------------------------------------------------------------------------------------------------------------------------------------
-//    //单条删除索引
-//    //单条update
-//    public void singleDelete(String index, String docId) {
-//        DeleteRequest deleteRequest=new DeleteRequest(index,docId);//构建删除请求
-//        try {
-//            client.delete(deleteRequest, RequestOptions.DEFAULT);//执行删除
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    //批量delete文档
-//    public void bulkDelete(String index, String docIdKey, List<String> docIdList) {
-//        BulkRequest bulkRequest = new BulkRequest();//构建BulkRequest对象
-//        for (String docId : docIdList) {//遍历文档_d列表
-//            DeleteRequest deleteRequest=new DeleteRequest(index,docId);//构建删除请求
-//            bulkRequest.add(deleteRequest);//创建UpdateRequest对象
-//        }
-//        try {
-//            BulkResponse bulkResponse = client.bulk(bulkRequest,RequestOptions.DEFAULT);//执行批量删除
-//            if (bulkResponse.hasFailures()) {//判断状态
-//                System.out.println("bulk fail,message:" + bulkResponse.buildFailureMessage());
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//
-//    //update by query
-//    public void deleteByQuery(String index,String city) {
-//        DeleteByQueryRequest deleteByQueryRequest=new DeleteByQueryRequest(index);//构建DeleteByQueryRequest对象
-//        deleteByQueryRequest.setQuery(new TermQueryBuilder("city",city));//设置按照城市查找文档的query
-//        try {
-//            client.deleteByQuery(deleteByQueryRequest,RequestOptions.DEFAULT);//执行删除
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------
+    //单条删除索引
+    //单条update
+    public void singleDelete(String index, String docId) {
+        DeleteRequest deleteRequest=new DeleteRequest(index,docId);//构建删除请求
+        try {
+            client.delete(deleteRequest, RequestOptions.DEFAULT);//执行删除
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //批量delete文档
+    public void bulkDelete(String index, String docIdKey, List<String> docIdList) {
+        BulkRequest bulkRequest = new BulkRequest();//构建BulkRequest对象
+        for (String docId : docIdList) {//遍历文档_d列表
+            DeleteRequest deleteRequest=new DeleteRequest(index,docId);//构建删除请求
+            bulkRequest.add(deleteRequest);//创建UpdateRequest对象
+        }
+        try {
+            BulkResponse bulkResponse = client.bulk(bulkRequest,RequestOptions.DEFAULT);//执行批量删除
+            if (bulkResponse.hasFailures()) {//判断状态
+                System.out.println("bulk fail,message:" + bulkResponse.buildFailureMessage());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    //delete by query
+    public void deleteByQuery(String index,String city) {
+        DeleteByQueryRequest deleteByQueryRequest=new DeleteByQueryRequest(index);//构建DeleteByQueryRequest对象
+        deleteByQueryRequest.setQuery(new TermQueryBuilder("city",city));//设置按照城市查找文档的query
+        try {
+            client.deleteByQuery(deleteByQueryRequest,RequestOptions.DEFAULT);//执行删除
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public List<Hotel> getHotelFromTitle(String keyword) {
         SearchRequest searchRequest = new SearchRequest("hotel");//客户端请求
