@@ -7,11 +7,17 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.reindex.UpdateByQueryRequest;
 import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -121,85 +127,85 @@ public class EsService {
 //        }
 //    }
 //
-//    //-----------------------------------------------------------------------------------------------------------------------------------
-//    //单条update
-//    public void singleUpdate(String indexName, String docIdKey, Map<String, Object> recordMap) {
-//        UpdateRequest updateRequest = new UpdateRequest(indexName, docIdKey);
-//        updateRequest.doc(recordMap);
-//        try {
-//            UpdateResponse updateResponse=client.update(updateRequest, RequestOptions.DEFAULT);
-//            String index = updateResponse.getIndex();//通过IndexResponse获取索引名称
-//            String id = updateResponse.getId();//通过IndexResponse获取文档Id
-//            Long version = updateResponse.getVersion();//通过IndexResponse获取文档版本
-//            System.out.println("index=" + index + ",id=" + id + ",version="+version);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//
-//    //批量update文档
-//    public void bulkUpdate(String index, String docIdKey, List<Map<String, Object>> recordMapList) {
-//        BulkRequest bulkRequest = new BulkRequest();//构建BulkRequest对象
-//        for (Map<String, Object> dataMap : recordMapList) {//遍历数据列表
-//            String docId = dataMap.get(docIdKey).toString();
-//            dataMap.remove(docId);//将id字段从map中删除
-//            bulkRequest.add(new UpdateRequest(index, docId).doc(dataMap));//创建UpdateRequest对象
-//        }
-//        try {
-//            BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);//执行批量更新
-//            if (bulkResponse.hasFailures()) {//判断状态
-//                System.out.println("bulk fail,message:" + bulkResponse.buildFailureMessage());
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    //update by query
-//    public void updateCityByQuery(String index,String oldCity,String newCity) {
-//        UpdateByQueryRequest updateByQueryRequest=new UpdateByQueryRequest(index);//构建UpdateByQueryRequest对象
-//        updateByQueryRequest.setQuery(new TermQueryBuilder("city",oldCity));//设置按照城市查找文档的query
-//        updateByQueryRequest.setScript(new Script("ctx._source['city']='"+newCity+"';"));//设置更新城市字段的脚本逻辑
-//        try {
-//            client.updateByQuery(updateByQueryRequest,RequestOptions.DEFAULT);//执行更新
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//
-//    //单条upsert文档
-//    public void singleUpsert(String index, String docIdKey, Map<String, Object> recordMap,Map<String, Object> upRecordMap) {
-//        UpdateRequest updateRequest = new UpdateRequest(index, docIdKey);//构建UpdateRequest
-//        updateRequest.doc(recordMap);//设置写更新辑
-//        updateRequest.upsert(upRecordMap);//设置插入逻辑
-//        try {
-//            client.update(updateRequest, RequestOptions.DEFAULT);//执行upsert
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    //批量upsert文档
-//    public void bulkUpsert(String indexName, String docIdKey, List<Map<String, Object>> recordMapList) {
-//        BulkRequest bulkRequest = new BulkRequest();//新建请求
-//        //遍历所有的提示词和提示词对应的拼音形式数据
-//        for (Map<String, Object> dataMap : recordMapList) {
-//            String docId = dataMap.get(docIdKey).toString();//获取主键作为Elasticsearch索引的主键
-//            UpdateRequest updateRequest = new UpdateRequest(indexName, docId).doc(dataMap, XContentType.JSON).upsert(dataMap, XContentType.JSON);//构建写入请求
-//            bulkRequest.add(updateRequest);//批量加入写入请求
-//        }
-//        try {
-//            BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);//获取批量写入的返回结果
-//            if (bulkResponse.hasFailures()) {//判断是否写入失败
-//                System.out.println("bulk fail,message:" + bulkResponse.buildFailureMessage());
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
+    //-----------------------------------------------------------------------------------------------------------------------------------
+    //单条update
+    public void singleUpdate(String indexName, String docIdKey, Map<String, Object> recordMap) {
+        UpdateRequest updateRequest = new UpdateRequest(indexName, docIdKey);
+        updateRequest.doc(recordMap);
+        try {
+            UpdateResponse updateResponse=client.update(updateRequest, RequestOptions.DEFAULT);
+            String index = updateResponse.getIndex();//通过IndexResponse获取索引名称
+            String id = updateResponse.getId();//通过IndexResponse获取文档Id
+            Long version = updateResponse.getVersion();//通过IndexResponse获取文档版本
+            System.out.println("index=" + index + ",id=" + id + ",version="+version);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    //批量update文档
+    public void bulkUpdate(String index, String docIdKey, List<Map<String, Object>> recordMapList) {
+        BulkRequest bulkRequest = new BulkRequest();//构建BulkRequest对象
+        for (Map<String, Object> dataMap : recordMapList) {//遍历数据列表
+            String docId = dataMap.get(docIdKey).toString();
+            dataMap.remove(docId);//将id字段从map中删除
+            bulkRequest.add(new UpdateRequest(index, docId).doc(dataMap));//创建UpdateRequest对象
+        }
+        try {
+            BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);//执行批量更新
+            if (bulkResponse.hasFailures()) {//判断状态
+                System.out.println("bulk fail,message:" + bulkResponse.buildFailureMessage());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //update by query
+    public void updateCityByQuery(String index,String oldCity,String newCity) {
+        UpdateByQueryRequest updateByQueryRequest=new UpdateByQueryRequest(index);//构建UpdateByQueryRequest对象
+        updateByQueryRequest.setQuery(new TermQueryBuilder("city",oldCity));//设置按照城市查找文档的query
+        updateByQueryRequest.setScript(new Script("ctx._source['city']='"+newCity+"';"));//设置更新城市字段的脚本逻辑
+        try {
+            client.updateByQuery(updateByQueryRequest,RequestOptions.DEFAULT);//执行更新
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    //单条upsert文档
+    public void singleUpsert(String index, String docIdKey, Map<String, Object> recordMap,Map<String, Object> upRecordMap) {
+        UpdateRequest updateRequest = new UpdateRequest(index, docIdKey);//构建UpdateRequest
+        updateRequest.doc(recordMap);//设置写更新辑
+        updateRequest.upsert(upRecordMap);//设置插入逻辑
+        try {
+            client.update(updateRequest, RequestOptions.DEFAULT);//执行upsert
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //批量upsert文档
+    public void bulkUpsert(String indexName, String docIdKey, List<Map<String, Object>> recordMapList) {
+        BulkRequest bulkRequest = new BulkRequest();//新建请求
+        //遍历所有的提示词和提示词对应的拼音形式数据
+        for (Map<String, Object> dataMap : recordMapList) {
+            String docId = dataMap.get(docIdKey).toString();//获取主键作为Elasticsearch索引的主键
+            UpdateRequest updateRequest = new UpdateRequest(indexName, docId).doc(dataMap, XContentType.JSON).upsert(dataMap, XContentType.JSON);//构建写入请求
+            bulkRequest.add(updateRequest);//批量加入写入请求
+        }
+        try {
+            BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);//获取批量写入的返回结果
+            if (bulkResponse.hasFailures()) {//判断是否写入失败
+                System.out.println("bulk fail,message:" + bulkResponse.buildFailureMessage());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 //    //-----------------------------------------------------------------------------------------------------------------------------------------------------------
 //    //单条删除索引
 //    //单条update
